@@ -11,11 +11,11 @@ html {
 }
 
 #play{
-	background:url(play.png);
+	background:url(./play.png);
 }
 #pause {
-	background:url(pause.png);
+	background:url(./pause.png);
 }
 #stop{
-	background:url(stop.png);	
+	background:url(./stop.png);	
 }
