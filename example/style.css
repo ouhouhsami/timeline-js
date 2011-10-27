@@ -1,0 +1,21 @@
+html {
+	font-family:Arial;
+}
+
+#play, #pause, #stop{
+	width:48px;
+	height:48px;
+	border:0px;
+	cursor:pointer;
+	
+}
+
+#play{
+	background:url(play.png);
+}
+#pause {
+	background:url(pause.png);
+}
+#stop{
+	background:url(stop.png);	
+}

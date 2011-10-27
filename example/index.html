@@ -1,0 +1,65 @@
+<!DOCTYPE html>  
+<html>
+<head>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="no title" charset="utf-8">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	<script src="../lib/timeline.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://raw.github.com/fryn/html5slider/master/html5slider.js" type="text/javascript" ></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			var duration;
+			$($('audio').get(0))
+			.bind("loadedmetadata", function(){
+				duration = $(this).get(0).duration
+				options = {
+							'height':60,
+							'scaleHeight':20,
+							'scaleBackgroundColor':'#079584', 
+							'backgroundColor':'#DD3423',
+							'textColor':'#093849',
+							'cursorColor':'#958493',
+							'scaleFactor':2
+				}
+				// the only important thing in this file
+				var timeline = new Timeline('audio', 'sound_visualisation', 'scale', 'scroll', duration, options);
+			})
+			//
+			$("#play").click(function(event){
+				$('audio').get(0).play()
+				$(this).hide()
+				$("#pause").show()
+			})
+			$("#pause").click(function(event){
+				$('audio').get(0).pause()
+				$(this).hide()
+				$("#play").show()
+			})
+			$("#stop").click(function(event){
+				$('audio').get(0).pause()
+				$('audio').get(0).currentTime = 0
+				$("#play").show()
+				$("#pause").hide()
+			})
+			$("#pause").hide()
+		})
+	</script>
+	
+</head>
+
+<body>
+	<div style="width:620px; border:3px solid black; border-radius : 5px;">
+	<div id="sound_visualisation" style="width:500px;float:right"></div> 
+    <div style="background:-moz-linear-gradient(black, #666, #333, black, black); height:54px; padding-top:6px;padding-left:6px">
+		</button><button id="stop"></button>
+		<button id="play"></button>
+		<button id="pause">
+    </div>
+	</div>
+	<div style="clear:both;"></div>     
+    <input type="range" min="1" max="100" step="0.01" id="scale" value="1" />
+    <input type="range" min="0" max="100" step="0.01" id="scroll" value="1" />
+	<audio id="audio" src="http://upload.wikimedia.org/wikipedia/commons/1/12/01_Junkyard_Jewel_%28new_mix%29.ogg" id="audio" ></audio>
+</body>
+
+
+</html>
