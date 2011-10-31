@@ -3,6 +3,7 @@
 <head>
 	<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="no title" charset="utf-8">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
 	<script src="../lib/timeline.js" type="text/javascript" charset="utf-8"></script>
 	<script src="https://raw.github.com/fryn/html5slider/master/html5slider.js" type="text/javascript" ></script>
 	<script type="text/javascript">
@@ -11,17 +12,21 @@
 			$($('audio').get(0))
 			.bind("loadedmetadata", function(){
 				duration = $(this).get(0).duration
-				options = {
-							'height':60,
+				var options = {
+							'height':160,
 							'scaleHeight':20,
 							'scaleBackgroundColor':'#079584', 
 							'backgroundColor':'#DD3423',
 							'textColor':'#093849',
 							'cursorColor':'#958493',
-							'scaleFactor':2
+							'scaleFactor':2, 
+							'tracks':1
 				}
 				// the only important thing in this file
 				var timeline = new Timeline('audio', 'sound_visualisation', 'scale', 'scroll', duration, options);
+				
+				timeline.addPeriod(10,20,'seagreen', 3)
+
 			})
 			//
 			$("#play").click(function(event){
@@ -41,7 +46,88 @@
 				$("#pause").hide()
 			})
 			$("#pause").hide()
+			
+			$.ajax({
+				type: "GET",
+				url: "france-3.v2t",
+				dataType: "xml",
+				success: parseXml
+			});	
+			
+			
+			
 		})
+function parseXml(xml)
+{
+	var audio_vt2_path = $(xml).find('Timeline').attr('mediaContent')
+	var nbOfTracks = 0;
+	var periods = []
+
+	$(xml).find("Bubble").each(function()
+  	{
+    	//console.log(parseInt($(this).attr("level")), nbOfTracks)
+		if(parseInt($(this).attr("level")) > nbOfTracks){
+			//console.log('la', $(this).attr("level"), nbOfTracks)
+			nbOfTracks = parseInt($(this).attr("level"))
+		}
+		var ms = vt2_convert_time($(this).attr('time'))
+		if($(this).next('Bubble').attr('time')){
+			var ms2 = vt2_convert_time($(this).next('Bubble').attr('time'))
+		}else {
+			if($(this).parent().next('Bubble').attr('time')){
+				var ms2 = vt2_convert_time($(this).parent().next('Bubble').attr('time'))
+			}else {
+				//console.log("NOTHING")
+				var ms2 = 253.229569
+			}
+		}
+		periods.push({time_in:ms, time_out:ms2, track:parseInt($(this).attr("level")), color:'rgb('+$(this).attr("color")+')'})
+
+  	});
+	//console.log(nbOfTracks)
+	
+	$($('#audio_vt2').get(0))
+	.bind("loadedmetadata", function(){
+		var duration = $(this).get(0).duration
+		//console.log(duration)
+		var options = {
+					'height':160,
+					'scaleHeight':20,
+					'scaleBackgroundColor':'#079584', 
+					'backgroundColor':'#DD3423',
+					'textColor':'#093849',
+					'cursorColor':'#958493',
+					'scaleFactor':2, 
+					'numberOfTracks':4,
+					'periodShape':'bubble'
+		}
+		console.log(options)
+		// the only important thing in this file
+		var timeline = new Timeline('audio_vt2', 'sound_visualisation_vt2', 'scale_vt2', 'scroll_vt2', duration, options);
+		for(var i = 0; i<periods.length; i++){
+			//console.log(periods[i])
+			timeline.addPeriod(periods[i].time_in,periods[i].time_out,periods[i].color, periods[i].track)
+		}
+	})
+
+	$("#audio_vt2").attr('src', audio_vt2_path)
+
+  $(xml).find("Bubble").each(function()
+  {
+    //$("#output").append($(this).attr("author") + "<br />");
+	//$('#output').append($(this).attr("time")+' '+$(this).attr("level")+'<br />')
+  });
+
+}
+
+
+function vt2_convert_time(str){
+	var ms = parseInt(str.split('.')[1])
+	var rest = Date.parseExact(str.split('.')[0], "m:ss");
+	ms = rest.getMinutes()*60+rest.getSeconds()+ms*100/1000;
+	return ms;
+}
+
 	</script>
 	
 </head>
@@ -49,7 +135,7 @@
 <body>
 	<div style="width:620px; border:3px solid black; border-radius : 5px;">
 	<div id="sound_visualisation" style="width:500px;float:right"></div> 
-    <div style="background:-moz-linear-gradient(black, #666, #333, black, black); height:54px; padding-top:6px;padding-left:6px">
+    <div style="background:-moz-linear-gradient(black, #666, #333, black, black); height:154px; padding-top:6px;padding-left:6px">
 		</button><button id="stop"></button>
 		<button id="play"></button>
 		<button id="pause">
@@ -59,6 +145,26 @@
     <input type="range" min="1" max="100" step="0.01" id="scale" value="1" />
     <input type="range" min="0" max="100" step="0.01" id="scroll" value="1" />
 	<audio id="audio" src="http://upload.wikimedia.org/wikipedia/commons/1/12/01_Junkyard_Jewel_%28new_mix%29.ogg" id="audio" ></audio>
+
+	<div id="output"></div>
+	
+	
+	
+	
+	
+	<h1>VT2</h1>
+	
+    <input type="range" min="1" max="100" step="0.01" id="scale_vt2" value="1" />
+    <input type="range" min="0" max="100" step="0.01" id="scroll_vt2" value="1" />	
+	<div id="sound_visualisation_vt2" style="width:500px;float:right"></div> 
+	<audio id="audio_vt2" controls/>
+	
+	
+	
+	
+	
+	
+	
 </body>
 
 
