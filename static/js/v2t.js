@@ -66,7 +66,7 @@ function parseXml(xml)
 					'scaleColor':'#EAE5E1',
 					'trackSeparatorColor':'#EAE5E1', 
 					'textColor':'#EAE5E1',
-					'cursorColor':'#958493',
+					'cursorColor':'#f00',
 					'scaleFactor':2, 
 					'numberOfTracks':4,
 					'periodShape':'bubble',
