@@ -15,7 +15,8 @@ $(document).ready(function() {
 						'cursorColor':'#000',
 						'maxScaleFactor':1,
 						'numberOfTracks':3,
-						'periodShape':'rectangle'
+						'periodShape':'rectangle',
+						'cursorHeight':100, 
 					}
 		var timeline = new Timeline('audio', 'sound_visualisation', duration, options, 'scale', 'scroll');
 		timeline.addPeriod(5,12, '#7A1631', 1)
