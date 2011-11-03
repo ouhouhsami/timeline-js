@@ -1,28 +1,67 @@
 ---
 layout: layout
 title: timeline-js
+js: ['http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js', 'https://raw.github.com/fryn/html5slider/master/html5slider.js', 'static/js/timeline.js', 'static/js/index.js']
 ---
 
 <div class="content">
+	<h2>About</h2>
 	<p>
-		timeline-js is a simple javascript library which build a timeline view for your audio markup.
-		<br />
-		This timeline view as scale and scroll possibilities
-		<br />
-		This timeline view show you the graduate scale of time
-		
+	<i>timeline-js</i> is a javascript library for timeline representation of &lt;audio /&gt; or &lt;video /&gt; HTML5 tag.
+	
+	<br />
+	<b>! You must read the examples with Firefox. This is not a library limitation, but only a codec limitation : examples use OGG files from wikimedia.</b>
 	</p>
 	
-	<p>Check out our different examples</p>
+	<div id="player">
+	<div style="float:left">
+		<button id="stop"></button>
+		<button id="play"></button>
+		<button id="pause"></button>
+	</div>
+	<div style="float:right;" >
+	<div id="sound_visualisation"></div>
+
+	<label for="scale">Scale</label>
+	<input type="range" min="1" step="0.01" id="scale" value="1" />
+	<label for="scroll">Scroll</label>
+	<input type="range" min="0"  step="0.01" id="scroll" value="0" />
+	</div>
+
+	<div style="clear:both"></div>
+
+	</div>
+	<audio id="audio" >
+		<source src="http://upload.wikimedia.org/wikipedia/commons/b/bb/Vampire_3component.ogg" type="audio/ogg">
+	</audio>
+	
+	<h3>Features</h3>
+	 
+	<ul>
+	<li>The timeline representation shows a graduate scale of time.</li>
+	<li>The timeline has scale and scroll possibilities that can be bound to range input.</li>
+	<li>The timeline can have multiple tracks, and on each track, you can assign markers or periods.</li>
+	<li>The periods can have an alternative <i>bubble</i> view.</li>
+	</ul>
+	
+	<h3>Examples</h3>
 	
 	<ul>
-		<li><a href="simple-example.html">The low-fi example</a></li>
-		<li>Skinned example</li>
-		<li>Marker and Period representation example</li>
-		<li>Multitrack</li>
-		<li>The bubble multitrack</li>
+		<li><a href="basic-example.html">Basic audio example</a></li>
+		<li><a href="basic-example-w-scale-scroll.html">Basic example with scale and scroll</a></li>
+		<li><a href="skin-example.html">How to skin the timeline</a></li>
+		<li><a href="marker-and-period-example.html">Add Markers and Periods to a timeline</a></li>
+		<li><a href="basic-video-example.html">Video example with periods</a></li>
+		<li><a href="multitrack-example.html">Multitrack example</a></li>
+		<li><a href="bubble-example.html">Bubble view</a></li>
+		<li><a href="v2t.html">V2T Bubble example</a></li>
 	</ul>
-  <div class="related">
+
+	<h3>Documentation</h3>
+	
+	<p>jsdoc (http://code.google.com/p/jsdoc-toolkit/) can generate documentation for the library.</p>
+  <!--
+	<div class="related">
     <ul>
       {% for post in site.posts %}
       <li>
@@ -31,4 +70,5 @@ title: timeline-js
       {% endfor %}
     </ul>
   </div>
+	-->
 </div>
