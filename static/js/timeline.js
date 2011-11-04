@@ -52,7 +52,7 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 						'backgroundColor':'#ddd',
 						'textColor':'#eee',
 						'cursorColor':'#f00',
-						'maxScaleFactor':2,
+						'maxScaleFactor':5,
 						'numberOfTracks':1,
 						'periodShape':'rectangle',
 						'cursorHeight':60,
@@ -98,9 +98,9 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	// Other vars
 	this.duration = duration;
 	this.time = 0;
-	this.maxScaleFactor = this.options.maxScaleFactor;
 	this._periods = []
 	this._markers = []
+	//this._currentActives = []
 	
 	// Initialize
 	this.initGUI();
@@ -166,6 +166,22 @@ Timeline.prototype.addEventListeners = function(){
  */
 Timeline.prototype.onTimeUpdate = function(event){
 	this.time = this.media.currentTime
+	// dispatch current 'active' elements	
+	/*
+	for(var i=0; i<this._periods.length; i++){
+		if(this.time > this._periods[i].time_in && this.time < this._periods[i+1].time_out){
+			//console.log("go", this._periods[i].id)
+			if(this._currentActives.indexOf(this._periods[i].id) == -1){
+				this._currentActives.push(this._periods[i].id)
+			}	
+		}else {
+			if(this._currentActives.indexOf(this._periods[i].id) != -1){
+				this._currentActives.splice(this._currentActives.indexOf(this._periods[i].id), 1);
+			}			
+		}
+	}
+	console.log(this._currentActives)
+	*/
 	this.updateGUI()
 }
 /**
@@ -274,7 +290,7 @@ Timeline.prototype.initGUI = function() {
     this.canvas.width = this.options.width;
 	this.canvas.height = this.options.height;
 	if(this.scale){
-    	this.scale.setAttribute("max", this.maxScaleFactor * this.canvas.width / this.duration) 
+    	this.scale.setAttribute("max", this.options.maxScaleFactor )
 	}
     this.initialRatio = this.options.width/this.duration
     this.updateGUI()
@@ -347,9 +363,12 @@ Timeline.prototype.updateGUI = function() {
  * @param {Number} [track] The track number where the period must be
  */
 Timeline.prototype.addPeriod = function(time_in, time_out, color, track){
+	var id = (((1+Math.random())*0x10000)|0).toString(16).substring(1);
 	if(track == undefined){ track = 1}
-	this._periods.push({time_in:parseInt(time_in), time_out:parseInt(time_out), color:color, track:track})
+	this._periods.push({id:id, time_in:parseInt(time_in), time_out:parseInt(time_out), color:color, track:track})
 	this.updateGUI()
+	//console.log(id)
+	return id
 }
 /**
  * Add Marker
