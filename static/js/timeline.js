@@ -56,6 +56,9 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 						'numberOfTracks':1,
 						'periodShape':'rectangle',
 						'cursorHeight':60,
+						//'followCursor':true,
+						'mode':'read',
+						'newPeriodColor':'#0A3AEE'
 	}
 	
 	
@@ -71,7 +74,7 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 		this.options.textColor = (typeof override_options.textColor == 'undefined') ? this.options.textColor : override_options.textColor;	
 		this.options.cursorColor = (typeof override_options.cursorColor == 'undefined') ? this.options.cursorColor : override_options.cursorColor;	
 		this.options.cursorHeight = (typeof override_options.cursorHeight == 'undefined') ? this.options.cursorHeight : override_options.cursorHeight;	
-
+		this.options.mode = (typeof override_options.mode == 'undefined') ? this.options.mode : override_options.mode;	
 		
 		if(override_options.numberOfTracks){
 			this.options.numberOfTracks = override_options.numberOfTracks
@@ -98,9 +101,16 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	// Other vars
 	this.duration = duration;
 	this.time = 0;
-	this._periods = []
-	this._markers = []
+	this._periods = [];
+	this._markers = [];
+	
+	
 	//this._currentActives = []
+	this.updateTarget = null; // for update mode, need to know the target the user want to udpate
+	this.updateAnchor = null; // for update mode, need to know, for periods, if it's a left or right udapte (timein or timeout)
+	
+	this.mouseDownEvent = null;
+	this.mouseUpEvent = null;
 	
 	// Initialize
 	this.initGUI();
@@ -112,6 +122,10 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	this.setCurrentTime = false;
 	this.followCursor = false
 	*/
+	
+	
+	
+	
 
 };
 
@@ -207,31 +221,39 @@ Timeline.prototype.onScrollUpdate = function(event){
  * @private
  */
 Timeline.prototype.onMouseClick = function(event){    
-    var totalOffsetX = 0;
+/*    
+	var totalOffsetX = 0;
     var totalOffsetY = 0;
     var canvasX = 0;
     var canvasY = 0;
     var currentElement = this.timeline;
     do{
-        //console.log(currentElement, currentElement.offsetLeft)
         totalOffsetX += currentElement.offsetLeft;
         totalOffsetY += currentElement.offsetTop;
     }
     while(currentElement = currentElement.offsetParent)
     var x = event.pageX - totalOffsetX;
-	var y = event.pageY-totalOffsetY;
-	var mouse_time = this.xToTime(x)
-	if(y > this.options.scaleHeight && y < this.options.height){
-	for(var i=0; i<this._periods.length; i++){
-		var period = this._periods[i];
-		if(mouse_time > period.time_in && mouse_time < period.time_out && y > this.yTrack(period.track).top && y < this.yTrack(period.track).bottom){
-			mouse_time = period.time_in
+	var y = event.pageY - totalOffsetY;
+	*/
+	var pos = this.getRelativePosition({x:event.pageX, y:event.pageY })
+	var mouse_time = this.xToTime(pos.x)
+	if(pos.y > this.options.scaleHeight && pos.y < this.options.height){
+		for(var i=0; i<this._periods.length; i++){
+			var period = this._periods[i];
+			if(mouse_time > period.time_in && mouse_time < period.time_out && pos.y > this.yTrack(period.track).top && pos.y < this.yTrack(period.track).bottom){
+				mouse_time = period.time_in
+				if(this.options.mode == 'delete'){
+					this._periods.splice(i,1)
+					this.updateGUI()
+					return false
+				}
+				this.media.currentTime = mouse_time
+			}
 		}
 	}
+	if(pos.y>0 && pos.y<this.options.scaleHeight){
+		this.media.currentTime = mouse_time
 	}
-	
-	this.media.currentTime = mouse_time
-	
 }
 /**
  * @event
@@ -239,7 +261,7 @@ Timeline.prototype.onMouseClick = function(event){
  * @private
  */
 Timeline.prototype.onMouseDown = function(event){
-
+	this.mouseDownEvent = event
 }
 /**
  * @event
@@ -247,7 +269,27 @@ Timeline.prototype.onMouseDown = function(event){
  * @private
  */
 Timeline.prototype.onMouseUp = function(event){
+	this.mouseUpEvent = event
+	var initial_point = this.getRelativePosition({x:this.mouseDownEvent.pageX, y:this.mouseDownEvent.pageY})
+	var final_point = this.getRelativePosition({x:this.mouseUpEvent.pageX, y:this.mouseUpEvent.pageY})
+	if(this.options.mode == 'create'){
 
+		if(initial_point == final_point){
+			// create marker
+		}
+		else {
+			// create period
+			this.addPeriod(this.xToTime(initial_point.x), this.xToTime(final_point.x), this.options.newPeriodColor, this.yToTrack(final_point.y))
+		}
+	}
+	if(this.options.mode == 'update'){
+		if(this.updateAnchor == 'right'){
+			this._periods[this.updateTarget].time_out = this.xToTime(final_point.x)
+		}else {
+			this._periods[this.updateTarget].time_in = this.xToTime(final_point.x)
+		}
+		this.updateGUI()
+	}
 }
 /**
  * @event
@@ -255,7 +297,22 @@ Timeline.prototype.onMouseUp = function(event){
  * @private
  */
 Timeline.prototype.onCanvasMouseMove = function(event){
-
+	if(this.options.mode == 'update'){
+		var pos = this.getRelativePosition({x:event.pageX, y:event.pageY })
+		var mouse_time = this.xToTime(pos.x)
+		for(var i=0; i<this._periods.length; i++){
+			var period = this._periods[i];
+			if(mouse_time > period.time_in && mouse_time < period.time_out && pos.y > this.yTrack(period.track).top && pos.y < this.yTrack(period.track).bottom){
+				//mouse_time = period.time_in
+				// TODO : bug : not set this, or modify while update shape 
+				this.updateTarget = i
+				this.updateAnchor = 'right'
+				if(Math.abs(period.time_in-mouse_time) < Math.abs(period.time_out-mouse_time)){
+					this.updateAnchor = 'left'
+				}
+			}
+		}		
+	}
 }
 /**
  * @event
@@ -338,10 +395,19 @@ Timeline.prototype.updateGUI = function() {
     for(var i=0; i<this._periods.length; i++){
 		var obj = this._periods[i]
 		if(this.options.periodShape == 'rectangle'){
-			this.drawRect(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.color )
+			if(this.time > obj.time_in && this.time < obj.time_out){
+				this.drawRect(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.color, obj.label, true )
+			}
+			else {
+				this.drawRect(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.color, obj.label)				
+			}
 		}
 		if(this.options.periodShape == 'bubble'){
-			this.drawBubble(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.track, obj.color )			
+			if(this.time > obj.time_in && this.time < obj.time_out){
+				this.drawBubble(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.track, obj.color, obj.label, true)
+			}else {
+				this.drawBubble(this.timeToX(obj.time_in), this.yTrack(obj.track).top, this.timeToX(obj.time_out)-this.timeToX(obj.time_in), this.yTrack(obj.track).bottom-this.yTrack(obj.track).top, obj.track, obj.color, obj.label)
+			}
 		}
 	}
 	
@@ -351,6 +417,7 @@ Timeline.prototype.updateGUI = function() {
 		this.drawLine(this.timeToX(obj.time), this.options.scaleHeight, this.timeToX(obj.time), this.options.height-1, obj.color)
 	}
 	// time ticker (cursor)
+	
 	this.drawLine(this.timeToX(this.time), 0, this.timeToX(this.time), this.options.cursorHeight, this.options.cursorColor);
 	
 }
@@ -362,12 +429,13 @@ Timeline.prototype.updateGUI = function() {
  * @param {String} color The color of the period
  * @param {Number} [track] The track number where the period must be
  */
-Timeline.prototype.addPeriod = function(time_in, time_out, color, track){
+Timeline.prototype.addPeriod = function(time_in, time_out, color, track, label){
 	var id = (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-	if(track == undefined){ track = 1}
-	this._periods.push({id:id, time_in:parseInt(time_in), time_out:parseInt(time_out), color:color, track:track})
+	if(track == undefined){track = 1}
+	var period = {id:id, time_in:parseInt(time_in), time_out:parseInt(time_out), color:color, track:track}
+	if(label != undefined){period.label = label; }
+	this._periods.push(period)
 	this.updateGUI()
-	//console.log(id)
 	return id
 }
 /**
@@ -379,6 +447,14 @@ Timeline.prototype.addPeriod = function(time_in, time_out, color, track){
 Timeline.prototype.addMarker = function(time, color){
 	this._markers.push({time:parseInt(time), color:color})
 	this.updateGUI()
+}
+
+
+/**
+ * Live set option
+ */
+Timeline.prototype.setOption = function(name, value){
+	this.options[name] = value
 }
 
 // TIME-X CONVERSION UTILS
@@ -429,6 +505,15 @@ Timeline.prototype.yTrack = function(track){
 	var positions = {top:top_position, bottom:bottom_position}
 	return positions
 }
+Timeline.prototype.yToTrack = function(y){
+	var track_height = (this.options.height-this.options.scaleHeight)/this.options.numberOfTracks
+	for(var j=0; j<this.options.numberOfTracks; j++){
+		if(y>this.options.scaleHeight+j*track_height && y<this.options.scaleHeight+(j+1)*track_height){
+			return j+1
+		}
+	}
+	return 1
+}
 /**
  * @private
  */
@@ -439,6 +524,25 @@ Timeline.prototype.getWindowVisibleTime = function(){
 		return this.duration 
 	}
 }
+// X,Y CONVERSION UTILS
+/**
+ * @private
+ */
+Timeline.prototype.getRelativePosition = function(obj){
+    var totalOffsetX = 0;
+    var totalOffsetY = 0;
+    var canvasX = 0;
+    var canvasY = 0;
+    var currentElement = this.timeline;
+    do{
+        totalOffsetX += currentElement.offsetLeft;
+        totalOffsetY += currentElement.offsetTop;
+    }
+    while(currentElement = currentElement.offsetParent)
+    var x = obj.x - totalOffsetX;
+	var y = obj.y - totalOffsetY;
+	return {x:x, y:y}
+}
 
 // DRAW UTILS
 /**
@@ -446,6 +550,7 @@ Timeline.prototype.getWindowVisibleTime = function(){
  */
 Timeline.prototype.drawLine = function(x1, y1, x2, y2, color) {
     this.c.strokeStyle = color;
+	this.c.lineWidth = 1
     this.c.beginPath();
     this.c.moveTo(x1, y1);
     this.c.lineTo(x2, y2);
@@ -454,28 +559,37 @@ Timeline.prototype.drawLine = function(x1, y1, x2, y2, color) {
 /**
  * @private
  */
-Timeline.prototype.drawRect = function(x, y, w, h, color) {
+Timeline.prototype.drawRect = function(x, y, w, h, color, label, highlight) {
     this.c.fillStyle = color;
+	this.c.strokeStyle = '#FF0';
+	this.c.lineWidth = 3
     this.c.fillRect(x, y, w, h);
+	//if(highlight){this.c.stroke();}
 }
 /**
  * @private
  */
-Timeline.prototype.drawBubble = function(x, y, w, h, t, color){
-	//console.log('here', x)
+Timeline.prototype.drawBubble = function(x, y, w, h, t, color, label, highlight){
 	var cx = x+w/2
 	var h_track = (this.options.height - this.options.scaleHeight)/this.options.numberOfTracks*t
 	var cy = y
 	var r = w/2
 	this.c.fillStyle = color;
+	this.c.strokeStyle = '#FF0';
+	this.c.lineWidth = 3
 	this.c.beginPath();
 	this.c.moveTo(x, this.options.scaleHeight)
 	this.c.quadraticCurveTo(x, this.options.scaleHeight+h_track, x+w/2, this.options.scaleHeight+h_track)
 	this.c.quadraticCurveTo(x+w, this.options.scaleHeight+h_track, x+w, this.options.scaleHeight)
 	this.c.moveTo(x, this.options.scaleHeight)
-	this.c.fill()
+	this.c.fill();
+	if(highlight){this.c.stroke();}
 	this.c.closePath();
-	this.c.fill();	
+	if(label){
+		label_width =  this.c.measureText(label);
+		this.c.fillStyle = "#000";
+		this.c.fillText(label, x+w/2-label_width.width/2, this.options.scaleHeight+h_track-10);
+	}
 }
 /**
  * @private

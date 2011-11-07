@@ -31,8 +31,8 @@ Analysis by Brent Yorgason.
 <label for="scroll_vt2">Scroll</label>
 <input type="range" min="0" max="100" step="0.01" id="scroll_vt2" value="0" />	
 </div>
-<audio id="audio_vt2"/>
+<audio id="audio_vt2" ></audio>
 
 
 
-<div id="context_data"></div>
+<div id="context_data" style="height:300px;overflow:hidden; overflow-y : scroll; background-color:#E7E2DE; padding:5px;" ></div>

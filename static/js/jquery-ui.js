@@ -2,8 +2,7 @@ $(document).ready(function() {
 	var duration
 	$($('audio').get(0))
 	.bind("loadedmetadata", function(){
-		duration = $(this).get(0).duration
-		
+		duration = $(this).get(0).duration	
 		options = {
 						'height':80,
 						'width':880,
@@ -16,7 +15,6 @@ $(document).ready(function() {
 		}
 		var timeline = new Timeline('audio', 'sound_visualisation', duration, options, 'scale', 'scroll');
 	})
-
 	$( "#slider-range" ).dragslider({
 		range: true,
 		min: 0.0,
@@ -35,8 +33,5 @@ $(document).ready(function() {
 			document.getElementById('scroll').setAttribute('value', ui.values[0]/100*max_scroll);
 		}
 	});
-	
-	
-	
 })
 

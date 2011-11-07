@@ -19,6 +19,5 @@ $(document).ready(function() {
 		timeline.addPeriod(0,5,'#FC7D49',1)
 		timeline.addPeriod(15,25,'#FC7D49',1)
 		timeline.addPeriod(25,30,'#CF423C',1)
-	
 	})
 })

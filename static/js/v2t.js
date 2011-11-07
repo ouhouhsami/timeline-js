@@ -22,9 +22,7 @@ $(document).ready(function() {
 		$("#play").show()
 		$("#pause").hide()
 	})
-	$("#pause").hide()	
-
-
+	$("#pause").hide()
 })
 
 
@@ -38,15 +36,9 @@ function parseXml(xml)
 	$(xml).find("Bubble").each(function()
   	{
     	if(parseInt($(this).attr("level")) > nbOfTracks){
-			//console.log('la', $(this).attr("level"), nbOfTracks)
 			nbOfTracks = parseInt($(this).attr("level"))
 		}
 		var ms = vt2_convert_time($(this).attr('time'))
-		
-		
-		
-		
-		
 		if($(this).next('Bubble').attr('time')){
 			var ms2 = vt2_convert_time($(this).next('Bubble').attr('time'))
 		}else {
@@ -60,14 +52,12 @@ function parseXml(xml)
 				}
 			}
 		}
-		
-		//var ms2 = vt2_convert_time($(this).next().closest('Bubble').attr('time'))
-
-
-		periods.push({time_in:ms, time_out:ms2, track:parseInt($(this).attr("level")), color:'rgb('+$(this).attr("color")+')', content:$(this).find('Annotation').text()})
-		//console.log($(this).find('Annotation').text())
+		var period = {time_in:ms, time_out:ms2, track:parseInt($(this).attr("level")), color:'rgb('+$(this).attr("color")+')', content:$(this).find('Annotation').text()}
+		if($(this).attr("label")){
+			period.label = $(this).attr("label").toString()
+		}
+		periods.push(period)
   	});
-	console.log(nbOfTracks)
 	
 	$($('#audio_vt2').get(0))
 	.bind("loadedmetadata", function(){
@@ -86,44 +76,35 @@ function parseXml(xml)
 					'periodShape':'bubble',
 					'cursorHeight':30
 		}
-		//console.log(options)
 		// the only important thing in this file
 		var timeline = new Timeline('audio_vt2', 'sound_visualisation_vt2',duration, options, 'scale_vt2', 'scroll_vt2');
 		//var timeline = new Timeline('audio', 'sound_visualisation', duration,{}, 'scale', 'scroll');
 		var bubbles = []
 		for(var i = 0; i<periods.length; i++){
-			//console.log(periods[i])
-			var id = timeline.addPeriod(periods[i].time_in,periods[i].time_out,periods[i].color, periods[i].track)
+			var id = timeline.addPeriod(periods[i].time_in,periods[i].time_out,periods[i].color, periods[i].track, periods[i].label)
 			bubbles.push({id:id, content:periods[i].content})
-			//console.log(bubbles)
 		}
 	})
 	.bind('timeupdate', function(){
 		var time = $(this).get(0).currentTime
 		var active_data = []
-		for(var i=0; i<periods.length; i++){
+		for(var i=0; i<periods.length-1; i++){
 			if(time > periods[i].time_in && time < periods[i+1].time_out){
 				/*if(this._currentActives.indexOf(this._periods[i].id) == -1){
 					this._currentActives.push(this._periods[i].id)
 				}*/
-				//console.log(periods[i].content)	
 				active_data.push(periods[i].content)
 				
 			}else {
 				/*if(this._currentActives.indexOf(this._periods[i].id) != -1){
 					this._currentActives.splice(this._currentActives.indexOf(this._periods[i].id), 1);
-				}*/			
+				}*/
 			}
 		}
 		$('#context_data').html(active_data.join('<br /><br />'))
 		
 	})
-
 	$("#audio_vt2").attr('src', audio_vt2_path)
-	//$("#audio_vt2").attr('src', 'https://github.com/ouhouhsami/timeline-js/raw/gh-pages/static/snd/chopin.ogg')
-
-
-
   $(xml).find("Bubble").each(function()
   {
     //$("#output").append($(this).attr("author") + "<br />");
