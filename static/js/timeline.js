@@ -88,7 +88,7 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	
 	// DOM elements
 	this.timeline = document.getElementById(timeline);
-	this.timeline.style.width = this.options.width+'px'
+	
 	this.media = document.getElementById(media);
 	if(scale){
 		this.scale = document.getElementById(scale);
@@ -108,6 +108,8 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	//this._currentActives = []
 	this.updateTarget = null; // for update mode, need to know the target the user want to udpate
 	this.updateAnchor = null; // for update mode, need to know, for periods, if it's a left or right udapte (timein or timeout)
+	this._updateFixed = false; // special var 
+	
 	
 	this.mouseDownEvent = null;
 	this.mouseUpEvent = null;
@@ -124,7 +126,7 @@ var Timeline = function(media, timeline, duration, override_options, scale, scro
 	*/
 	
 	
-	
+	return this
 	
 
 };
@@ -262,6 +264,9 @@ Timeline.prototype.onMouseClick = function(event){
  */
 Timeline.prototype.onMouseDown = function(event){
 	this.mouseDownEvent = event
+	if(this.options.mode == 'update'){
+		this._updateFixed = true
+	}
 }
 /**
  * @event
@@ -273,13 +278,18 @@ Timeline.prototype.onMouseUp = function(event){
 	var initial_point = this.getRelativePosition({x:this.mouseDownEvent.pageX, y:this.mouseDownEvent.pageY})
 	var final_point = this.getRelativePosition({x:this.mouseUpEvent.pageX, y:this.mouseUpEvent.pageY})
 	if(this.options.mode == 'create'){
-
 		if(initial_point == final_point){
 			// create marker
 		}
 		else {
 			// create period
-			this.addPeriod(this.xToTime(initial_point.x), this.xToTime(final_point.x), this.options.newPeriodColor, this.yToTrack(final_point.y))
+			var period_id = this.addPeriod(this.xToTime(initial_point.x), this.xToTime(final_point.x), this.options.newPeriodColor, this.yToTrack(final_point.y))
+			try{
+				$(this).trigger('createperiod', [this.xToTime(initial_point.x), this.xToTime(final_point.x), this.options.newPeriodColor, this.yToTrack(final_point.y), "", period_id]);
+			}
+			catch(err){
+				
+			}
 		}
 	}
 	if(this.options.mode == 'update'){
@@ -288,6 +298,7 @@ Timeline.prototype.onMouseUp = function(event){
 		}else {
 			this._periods[this.updateTarget].time_in = this.xToTime(final_point.x)
 		}
+		this._updateFixed = false
 		this.updateGUI()
 	}
 }
@@ -297,14 +308,12 @@ Timeline.prototype.onMouseUp = function(event){
  * @private
  */
 Timeline.prototype.onCanvasMouseMove = function(event){
-	if(this.options.mode == 'update'){
+	if(this.options.mode == 'update' && this._updateFixed == false){
 		var pos = this.getRelativePosition({x:event.pageX, y:event.pageY })
 		var mouse_time = this.xToTime(pos.x)
 		for(var i=0; i<this._periods.length; i++){
 			var period = this._periods[i];
 			if(mouse_time > period.time_in && mouse_time < period.time_out && pos.y > this.yTrack(period.track).top && pos.y < this.yTrack(period.track).bottom){
-				//mouse_time = period.time_in
-				// TODO : bug : not set this, or modify while update shape 
 				this.updateTarget = i
 				this.updateAnchor = 'right'
 				if(Math.abs(period.time_in-mouse_time) < Math.abs(period.time_out-mouse_time)){
@@ -338,11 +347,13 @@ Timeline.prototype.onScroll = function(event){
  */
 
 Timeline.prototype.initGUI = function() {
-    //this.width = parseInt(this.timeline.style.width.split('px')[0])
     this.timeline.style.height = this.options.height+"px";
+    this.timeline.style.width = this.options.width+'px'
     this.timeline.style.background = this.options.backgroundColor;
-    this.canvas = document.createElement("canvas");
-    this.c = this.canvas.getContext("2d");
+    if(!this.canvas){
+    	this.canvas = document.createElement("canvas");
+    	this.c = this.canvas.getContext("2d");
+	}
     this.timeline.appendChild(this.canvas);
     this.canvas.width = this.options.width;
 	this.canvas.height = this.options.height;
@@ -358,8 +369,8 @@ Timeline.prototype.initGUI = function() {
  */
 
 Timeline.prototype.updateGUI = function() {
-
 	this.canvas.width = this.options.width;
+	this.canvas.height = this.options.height;
 	var lastTimeLabelX = 0;
 
 	// timeline
@@ -429,10 +440,14 @@ Timeline.prototype.updateGUI = function() {
  * @param {String} color The color of the period
  * @param {Number} [track] The track number where the period must be
  */
-Timeline.prototype.addPeriod = function(time_in, time_out, color, track, label){
-	var id = (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+Timeline.prototype.addPeriod = function(time_in, time_out, color, track, label, id){
+	if(id){
+		var id
+	}else{
+		var id = (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+	}
 	if(track == undefined){track = 1}
-	var period = {id:id, time_in:parseInt(time_in), time_out:parseInt(time_out), color:color, track:track}
+	var period = {id:id, time_in:parseFloat(time_in), time_out:parseFloat(time_out), color:color, track:track}
 	if(label != undefined){period.label = label; }
 	this._periods.push(period)
 	this.updateGUI()
@@ -448,13 +463,18 @@ Timeline.prototype.addMarker = function(time, color){
 	this._markers.push({time:parseInt(time), color:color})
 	this.updateGUI()
 }
-
-
 /**
  * Live set option
  */
 Timeline.prototype.setOption = function(name, value){
 	this.options[name] = value
+	this.initGUI()
+}
+/**
+ * Live get option
+ */
+Timeline.prototype.getOption = function(name){
+	return this.options[name]
 }
 
 // TIME-X CONVERSION UTILS

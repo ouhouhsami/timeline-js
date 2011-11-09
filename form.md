@@ -1,7 +1,7 @@
 ---
 layout: static
 title: Edition mode
-js: ['http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js', 'https://raw.github.com/fryn/html5slider/master/html5slider.js', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js', 'http://pastebin.com/raw.php?i=8ugkXxth', 'static/js/timeline.js', 'static/js/edit.js']
+js: ['http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js', 'https://raw.github.com/fryn/html5slider/master/html5slider.js', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js', 'http://pastebin.com/raw.php?i=8ugkXxth', 'static/js/timeline.js', 'static/js/form.js']
 css: ['http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/blitzer/jquery-ui.css']
 
 ---
@@ -23,6 +23,11 @@ css: ['http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.c
 	<input type="radio" id="delete" name="radio" /><label for="delete">Delete</label>
 </div>
 
+
+<label for="time_in">Time in</label><input type="text" id="time_in"/>
+<label for="time_out">Time out</label><input type="text" id="time_out"/>
+<label for="track">Track</label><input type="text" id="track"/>
+<label for="id">Id</label><input type="text" id="id"/>
 
 <h3>Javascript</h3>
 

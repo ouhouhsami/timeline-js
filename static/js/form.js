@@ -6,7 +6,18 @@ $(document).ready(function() {
 		duration = $(this).get(0).duration;
 		options = {mode:'create', numberOfTracks:3, height:140, width:880, cursorHeight:160}
 		timeline = new Timeline('audio', 'sound_visualisation', duration,options, 'scale', 'scroll');
+		
+		
+		$(timeline).bind('createperiod', function(evt, time_in, time_out, color, track, label, id){
+			$('#time_in').val(time_in)
+			$('#time_out').val(time_out)
+			$('#track').val(track)
+			$('#id').val(id)
+		})
 	})
+	
+	
+	
 	
 	
 	$('#create').click(function(evt){

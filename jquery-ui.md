@@ -8,7 +8,6 @@ css: ['http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.c
 <audio id="audio" src="http://upload.wikimedia.org/wikipedia/commons/b/bb/Vampire_3component.ogg" controls></audio>
 <div id="sound_visualisation"></div>
 <div id="slider-range"></div>
-<div id="sound_visualisation"></div>
 <div style="display:none;">
 	<label for="scale">Scale</label>
 	<input type="range" min="1" step="0.01" id="scale" value="1" />
@@ -68,7 +67,6 @@ $(document).ready(function() {
 <audio id="audio" src="http://upload.wikimedia.org/wikipedia/commons/b/bb/Vampire_3component.ogg" controls></audio>
 <div id="sound_visualisation"></div>
 <div id="slider-range"></div>
-<div id="sound_visualisation"></div>
 <div style="display:none;">
 <label for="scale">Scale</label>
 <input type="range" min="1" step="0.01" id="scale" value="1" />
