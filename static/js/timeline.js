@@ -428,9 +428,7 @@ Timeline.prototype.updateGUI = function() {
 		this.drawLine(this.timeToX(obj.time), this.options.scaleHeight, this.timeToX(obj.time), this.options.height-1, obj.color)
 	}
 	// time ticker (cursor)
-	
 	this.drawLine(this.timeToX(this.time), 0, this.timeToX(this.time), this.options.cursorHeight, this.options.cursorColor);
-	
 }
 
 /**
@@ -476,7 +474,17 @@ Timeline.prototype.setOption = function(name, value){
 Timeline.prototype.getOption = function(name){
 	return this.options[name]
 }
-
+/**
+ * Live set options
+ */
+/* TO TEST
+Timeline.prototype.setOptions = function(obj){
+	for(key in Object.keys(obj)){
+		this.options[key] = obj[key]
+	}
+	this.initGUI()
+}
+*/
 // TIME-X CONVERSION UTILS
 
 /**
